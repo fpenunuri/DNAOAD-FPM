@@ -80,7 +80,8 @@ call f_set_part(X, y, k)   ! array, elementwise
 ```
 
 #### 4. `function xto_dzn(X, n)`
-Converts `X` (integer, real, complex, or dualzn) into a dual number of order `n`.
+Constructs and returns a new `dualzn` of order `n` from `X` (does not modify `X`).
+
 
 Example (coefficients shown as arrays):
 ```fortran
@@ -91,7 +92,8 @@ Y = xto_dzn(0, 3)    ! --> [0, 0, 0, 0]
 ```
 
 #### 5. `function xto_complex(X)`
-Converts a scalar `X` (integer, real, or complex) to `complex(prec)`.
+Returns a new `complex(prec)` value constructed from `X`. The argument `X` is unchanged.
+
 
 Usage:
 ```fortran
