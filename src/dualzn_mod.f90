@@ -42,7 +42,7 @@ module dualzn_mod
   !---------------------------------------------------------------------
   public :: initialize_dualzn, f_part, f_set_part
   public :: xto_dzn, xto_complex   
-  !public :: BellY, Dnd
+  !public :: Dnd  !use this function to "dualize" other functions
 
   !---------------------------------------------------------------------
   ! Mathematical functions (elemental, intrinsic-like)
