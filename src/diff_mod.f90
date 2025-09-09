@@ -6,8 +6,8 @@ module diff_mod
 
   private
   public :: d1fscalar, d2fscalar, d1fvector
-  public :: Gradient, Jacobian, Hessian, Hessian_test
-  
+  public :: Gradient, Jacobian, Hessian
+
   !Interface for a scalar dual function f: D^m --> D (similar to
   !f: R^m --> R)
   abstract interface
@@ -34,33 +34,6 @@ module diff_mod
 
 contains
   !Hessian operator
-  function Hessian_test(fsd,qcmplx) result(Hmat)
-    procedure(fsdual) :: fsd
-    complex(prec), intent(in), dimension(:) :: qcmplx    
-    complex(prec), dimension(size(qcmplx),size(qcmplx)) :: Hmat
-    complex(prec), dimension(size(qcmplx)) :: ei, ej
-    complex(prec) :: hij
-    integer :: i,j,m
-    
-    m = size(qcmplx)
-    do i = 1, m
-       ei = 0.0_prec
-       ei(i) = 1.0_prec
-
-       Hmat(i,i) = d2fscalarvv(fsd,ei,qcmplx)
-
-       ej = 0.0_prec
-       do j = i+1, m
-          ej(j-1) = 0.0_prec
-          ej(j) = 1.0_prec
-
-          hij = d2fscalaruv(fsd, ei, ej, qcmplx)
-          Hmat(i,j) = hij
-          Hmat(j,i) = hij
-       end do
-    end do
-  end function Hessian_test
-  
   function Hessian(fsd,qcmplx) result(Hmat)
     procedure(fsdual) :: fsd
     complex(prec), intent(in), dimension(:) :: qcmplx    
