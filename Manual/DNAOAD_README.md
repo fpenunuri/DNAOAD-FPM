@@ -84,7 +84,7 @@ Converts `X` (integer, real, complex, or dualzn) into a dual number of order `n`
 
 Example (coefficients shown as arrays):
 ```fortran
-X = [0, 1, 2]        ! dualzn of order 2
+X(0:2) = [0, 1, 2]   ! dualzn of order 2
 Y = xto_dzn(X, 1)    ! --> [0, 1]
 Y = xto_dzn(X, 4)    ! --> [0, 1, 2, 0, 0]
 Y = xto_dzn(0, 3)    ! --> [0, 0, 0, 0]
