@@ -34,7 +34,7 @@ end type dualzn
 ```
 ==, /=, +, -, *, /, **
 ```
-Intrinsic assignment (`=`) is **not overloaded**. For cross-type conversions, use explicit constructors or functions.
+Intrinsic assignment (`=`) is **not overloaded**. Fortran already supports assignment between identical types . For cross-type conversions, use explicit constructors or functions.
 
 Example:
 ```fortran
@@ -42,7 +42,6 @@ d = xto_dzn(x, n)
 ```
 
 Rationale:
-- No consistent way to propagate `n` via `=`.  
 - Overloading assignment may introduce ambiguities.  
 - Explicit conversion ensures clarity and predictability.
 
@@ -83,7 +82,7 @@ call f_set_part(X, y, k)   ! array, elementwise
 #### 4. `function xto_dzn(X, n)`
 Converts `X` (integer, real, complex, or dualzn) into a dual number of order `n`.
 
-Example:
+Example (coefficients shown as arrays):
 ```fortran
 X = [0, 1, 2]        ! dualzn of order 2
 Y = xto_dzn(X, 1)    ! --> [0, 1]
