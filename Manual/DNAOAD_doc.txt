@@ -1,128 +1,115 @@
-DNAOAD package – A Fortran implementation of dual numbers for arbitrary-order automatic differentiation.
+DNAOAD Package – A Fortran implementation of dual numbers for arbitrary-order automatic differentiation
 
-A.
-module config_mode
-Defines the preprocessor parameters `prec` for real64 and real128 precision, as well as `max_order_dualzn = MAX_ORDER_DUALZN`, which by default is set to 5.
+A. module config_mode
+This module defines the preprocessor parameters `prec` for real64 and real128 precision, as well as the parameter `max_order_dualzn = MAX_ORDER_DUALZN`, which by default is set to 5.
 
-B.
-module dualzn_mod
-It contains:
+B. module dualzn_mod
+This module provides the core implementation of dual numbers.
 
-I.
-Definition of a dual number extended up to a maximum derivative order.
-
+I. Definition of the dual number type
 type, public :: dualzn
   complex(prec), dimension(0:max_order_dualzn) :: f
   integer :: ord
 end type dualzn
 
-- The parameter `max_order_dualzn` sets the maximum derivative order supported. In practical applications, derivatives beyond 4th order are rarely needed. From a theoretical perspective, the value of `max_order_dualzn` can be increased as far as computational resources allow. However, numerical precision issues tend to arise for higher orders.
+- The parameter `max_order_dualzn` specifies the maximum derivative order supported. In most practical applications, derivatives beyond the fourth order are seldom required. From a theoretical perspective, the value of `max_order_dualzn` can be increased as far as computational resources permit; however, numerical precision issues tend to emerge at higher orders.
 
-- The component `f(n)` stores the n-th coefficient of the dual number.
-- The component `ord` stores the current order of the dual number: 0 <= ord <= max_order_dualzn.
+- The component `f(n)` stores the n-th coefficient of the dual number.  
+- The component `ord` records the current order of the dual number, constrained by `0 <= ord <= max_order_dualzn`.  
 
-Note: it is technically possible to access components `f(n)` with n > ord, since the array is statically allocated. However, such components are either zero or contain undefined values and should not be used in calculations, as they fall outside the declared order. We recommend using the `f_part` function and the `f_set_part` subroutine.
+Note: While it is technically possible to access components `f(n)` with `n > ord` (since the array is statically allocated), such values are either zero or undefined and should not be used in computations. We recommend using the `f_part` function and the `f_set_part` subroutine for safe access and modification.
 
-Operators overloaded
-==, /=, +, -, *, /, **
-We do not overload intrinsic assignment (=). Fortran already covers assignment between like types. For cross-type conversions, we prefer an explicit constructor/function.
+Operators overloaded:  
+==, /=, +, -, *, /, **  
 
-Use xto_dzn(X, n) to convert a scalar (or array) X into a dualzn of the desired order n, and then assign the result:
+We deliberately do not overload intrinsic assignment (=). Fortran already supports assignment between identical types. For cross-type conversions, we encourage the use of explicit constructors or functions.
+
+To convert a scalar (or array) `X` into a `dualzn` of order `n`, use:
 
   d = xto_dzn(x, n)
 
-Rationale:
-- There is no “clean” way to pass the order n through "=".
-- It can introduce ambiguities with intrinsic assignment.
-- An explicit conversion keeps the API predictable and readable.
+Rationale:  
+- There is no consistent way to propagate the order `n` through "=".  
+- Overloading assignment in this context may introduce ambiguities.  
+- Explicit conversion ensures a predictable and readable API.  
 
-II. Core constructors & utilities
-1. subroutine initialize_dualzn(zdn, n)
-Initializes a dual number `zdn` to order `n`.
+II. Core constructors and utilities
 
-This routine sets the order field (`ord`) and zeroes out the coefficients `f(0:n)`. All higher coefficients beyond `n` remain undefined.
+1. subroutine initialize_dualzn(zdn, n)  
+Initializes a dual number `zdn` with order `n`. This routine sets the `ord` field and zeroes the coefficients `f(0:n)`. Coefficients beyond `n` remain undefined.
 
-Usage:
-  - Scalar: initialize_dualzn(z, n)    ! z becomes dual of order n
-  - Arrays: initialize_dualzn(Z, n)    ! applies elementwise
+- Usage:  
+  - Scalar: initialize_dualzn(z, n)    ! z becomes a dual number of order n  
+  - Array:  initialize_dualzn(Z, n)    ! applied elementwise  
 
-Notes:
-  - ELEMENTAL --> works with both scalars and arrays of `dualzn`.
-  - Caller must ensure 0 <= n <= max_order_dualzn.
-  - After initialization, zdn%f(0) = (0.0, 0.0) and all other coefficients up to n are zeroed.
+- Notes:  
+  - ELEMENTAL: applies to both scalars and arrays.  
+  - Caller must ensure 0 <= n <= max_order_dualzn.  
+  - After initialization, zdn%f(0) = (0.0, 0.0) and all coefficients up to n are set to zero.  
 
-2. function f_part(x,k)
-Returns the k-th coefficient f(k) of a dualzn number or of each element in an array of dualzn numbers.
+2. function f_part(x, k)  
+Returns the k-th coefficient f(k) of a dual number, or elementwise when applied to arrays.  
 
-Use this function instead of direct component access A%f(k) when working with arrays of `dualzn`, because some compilers may produce unexpected results with that syntax.
+- Usage:  
+  - Scalar: fr = f_part(x, k)  
+  - Array:  fr = f_part(X, k)  
 
-Usage:
-  - Scalar: fr = f_part(x, k)      ! returns x%f(k)
-  - Arrays: fr = f_part(x, k)      ! applies elementwise
+- Notes:  
+  - ELEMENTAL.  
+  - If k > x%ord, the returned value is defined but has no semantic meaning.  
+  - Caller must ensure 0 <= k <= max_order_dualzn.  
 
-Notes:
-  - ELEMENTAL --> works with both scalars and arrays of `dualzn`.
-  - If k > x%ord, the value is defined but semantically unused.
-  - Caller must ensure 0 <= k <= max_order_dualzn.
+3. subroutine f_set_part(x, y, k)  
+Assigns the coefficient f(k) of a dual number, or applies elementwise for arrays.  
 
-3. subroutine f_set_part(x,y,k)
-Sets the k-th coefficient f(k) of a dual number or of each element in an array of dual numbers.
+- Usage:  
+  - Scalar: f_set_part(x, y, k)    ! sets x%f(k) = y  
+  - Array:  f_set_part(X, y, k)    ! applied elementwise  
 
-Use this routine instead of direct component access A%f(k) when working with arrays of `dualzn`.
+- Notes:  
+  - ELEMENTAL.  
+  - Writes f(k) regardless of x%ord. If k > x%ord, the value is defined but unused.  
+  - Caller must ensure 0 <= k <= max_order_dualzn.  
 
-Usage:
-  - Scalar: f_set_part(x, y, k)    sets x%f(k) = y
-  - Arrays: f_set_part(X, y, k)    applies elementwise
+4. function xto_dzn(X, n)  
+Converts a value (integer, real, complex, or dualzn) into a dualzn of specified order n.  
 
-Notes:
-  - ELEMENTAL --> works with both scalars and arrays of `dualzn`.
-  - Writes f(k) regardless of x%ord. If k > x%ord, the coefficient is defined but semantically unused.
-  - Caller must ensure 0 <= k <= max_order_dualzn.
+- Behavior:  
+  - If X is type(dualzn): coefficients are copied up to min(n, X%ord). Remaining coefficients are zero-filled. The resulting order is exactly n.  
+  - If X is a scalar: a dual number of order n is returned, with X stored in f(0) and all higher coefficients set to zero.  
 
-4. function xto_dzn(X, n)
-Converts a value (integer, real, complex, or dualzn) X into a dualzn number of specified order n.
+- Example:  
+  X = [0, 1, 2]      ! dualzn of order 2  
+  Y = xto_dzn(X, 1)  ! --> [0, 1]  
+  Y = xto_dzn(X, 4)  ! --> [0, 1, 2, 0, 0]  
 
-Behavior:
- - If X is already type(dualzn):
-    Copies up to min(n, X%ord) coefficients from X into the result, zero-filling any remaining coefficients up to order n. The resulting order is exactly n, which may be greater or smaller than X%ord.
+  Y = xto_dzn(0, 3)  ! --> [0, 0, 0, 0]  
 
- - If X is a scalar (complex, real, or integer; any supported kind): Produces a dualzn of order n with X stored in coefficient f(0) and all higher coefficients f(1:n) set to zero.
+5. function xto_complex(X)  
+Converts X (integer, real, or complex) to complex(prec).  
 
-Usage:
-  - if X is a dualzn number (coefficients shown as arrays):
-     X = [0, 1, 2]         dualzn of order 2
-     Y = xto_dzn(X, 1)     --> [0, 1]
-     Y = xto_dzn(X, 4)     --> [0, 1, 2, 0, 0]
+- If X is already complex: only the kind is adjusted to prec.  
+- If X is integer or real: the imaginary part is set to 0.0_prec.  
+- ELEMENTAL: applies to scalars or arrays.  
 
-  - Y = xto_dzn(0,3)      --> [0, 0, 0, 0]
+- Usage:  
+  fr = xto_complex(X)  
 
-5. function xto_complex(X)
-Converts X (integer, real, or complex) to complex(prec).
+III. Mathematical functions (elemental, intrinsic-like)  
+The following overloaded functions are provided:  
+sin, cos, tan, exp, log, sqrt, asin, acos, atan, asinh, acosh, atanh, sinh, cosh, tanh, atan2, conjg  
 
- - If X is complex, only the kind is changed to prec.
- - If X is integer or real, the imaginary part is set to 0.0_prec.
- - elemental: can be applied to scalars or arrays and operates element-wise.
+Additional functions:  
+- inv(r) = 1/r  
+- absx(r) = sqrt(r*r)  
 
-Usage:
- fr = xto_complex(X)
-   parameters:
-   X  Scalar (not dualzn) Input value (polymorphic).
-   return fr as complex(prec).
+IV. Array and matrix operations  
+1. matmul(A, B) → both arguments must be rank-2 arrays.  
+2. sum(A) or sum(A, direction)  
+3. product(A) or product(A, direction)  
 
-III. Mathematical functions (elemental, intrinsic-like)
-The following overloaded functions are provided:
-sin, cos, tan, exp, log, sqrt, asin, acos, atan, asinh, acosh, atanh, sinh, cosh, tanh, atan2, conjg
+C. module diff_mod  
+...
 
-We also provide the inv(r) = 1/r function and the absx(r) = sqrt(r*r).
-
-IV. Array & matrix operations
-1. matmul(A,B) A and B must be rank-2 arrays.
-2. sum(A) or sum(A,direction)
-3. product(A) or product(A,direction)
-
-C.
-module diff_mod
-....
-
-D. Module test_functions_mod
-....
+D. module test_functions_mod  
+...
