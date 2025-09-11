@@ -85,7 +85,7 @@ Constructs and returns a new `dualzn` of order `n` from `X` (does not modify `X`
 
 Example (coefficients shown as arrays):
 ```fortran
-X(0:2) = [0, 1, 2]   ! dualzn of order 2
+X%f(0:2) = [0, 1, 2]   ! dualzn of order 2
 Y = xto_dzn(X, 1)    ! --> [0, 1]
 Y = xto_dzn(X, 4)    ! --> [0, 1, 2, 0, 0]
 Y = xto_dzn(0, 3)    ! --> [0, 0, 0, 0]
