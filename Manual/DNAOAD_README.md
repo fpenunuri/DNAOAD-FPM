@@ -28,7 +28,7 @@ end type dualzn
 - `f(n)` stores the *n*-th coefficient of the dual number.  
 - `ord` stores the current order of the dual number, with `0 <= ord <= max_order_dualzn`.  
 
-> ⚠️ **Note:** Accessing `f(n)` with `ord < n < max_order_dualzn` is technically possible, but such values are either zero or undefined. Instead, use `f_part` and `f_set_part`.
+> ⚠️ **Note:** Accessing `f(n)` with `ord < n <= max_order_dualzn` is technically possible, but such values are either zero or undefined. Instead, use `f_part` and `f_set_part`.
 
 ### Overloaded operators
 ```

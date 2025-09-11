@@ -11,48 +11,17 @@ module dualzn_mod
 
   private
 
-  !> Definition of a dual number extended up to a maximum derivative
-  !! order.
-  !! 
-  !! The parameter `max_order_dualzn` (see config_mod.F90) sets the
-  !! maximum derivative order supported. In practical applications,
-  !! derivatives beyond 4th order are rarely needed. From a theoretical
-  !! perspective, the value of `max_order_dualzn` can be increased as
-  !! far as computational resources allow. However, numerical precision
-  !! issues tend to arise for higher orders.
-  !!
-  !! The component f(n) stores the n-th component of the dual number.
-  !! The component `ord` stores the current order of the dual number.
-  !! 0 <= ord <= max_order_dualzn
-  !> Note: it is technically possible to access components `f(n)` with
-  !> `n > ord`, since the array is statically allocated. However, such
-  !> components are either zero or contain undefined values and should
-  !> not be used in calculations, as they fall outside the declared
-  !> order. We recommend to use the f_part function and the f_set_part
-  !> subroutine.
   type, public :: dualzn
      complex(prec), dimension(0:max_order_dualzn) :: f
      integer :: ord
   end type dualzn
 
-  !Functions and subroutines of the module
-  !
-  !---------------------------------------------------------------------
-  ! Core constructors & utilities
-  !---------------------------------------------------------------------
   public :: initialize_dualzn, f_part, f_set_part
   public :: xto_dzn, xto_complex   
   !public :: Dnd  !use this function to "dualize" other functions
 
-  !---------------------------------------------------------------------
-  ! Mathematical functions (elemental, intrinsic-like)
-  !---------------------------------------------------------------------
   public :: inv, sin, cos, tan, exp, log, sqrt, asin, acos, atan, asinh
   public :: acosh, atanh, sinh, cosh, tanh, absx, atan2, conjg
-
-  !---------------------------------------------------------------------
-  ! Array & matrix operations
-  !---------------------------------------------------------------------
   public :: matmul, sum, product
   
   !---------------------------------------------------------------------
@@ -238,21 +207,6 @@ module dualzn_mod
 
   ! ====== Functions ======
 contains
-  !> Initializes a dual number `zdn` to order `n`.
-  !>
-  !> This routine sets the order field (`ord`) and zeroes out the 
-  !> coefficients `f(0:n)`. All higher coefficients beyond `n` remain 
-  !> undefined.
-  !>
-  !> Usage:
-  !>   - Scalar: initialize_dualzn(z, n)    ! z becomes dual of order n
-  !>   - Arrays: initialize_dualzn(Z, n)    ! applies elementwise
-  !>
-  !> Notes:
-  !>   - ELEMENTAL --> works with both scalars and arrays of `dualzn`.
-  !>   - Caller must ensure `0 <= n <= max_order_dualzn`.
-  !>   - After initialization, `zdn%f(0) = (0.0, 0.0)` and all other 
-  !>     coefficients up to `n` are zeroed.
   elemental subroutine initialize_dualzn(zdn, n)
     type(dualzn), intent(out) :: zdn
     integer, intent(in) :: n
@@ -265,23 +219,7 @@ contains
     zdn%ord = n
     zdn%f(0:n) = (0.0_prec, 0.0_prec)
   end subroutine initialize_dualzn
-  !---------------------------------------------------------------------
-  
-  !> Returns the k-th coefficient f(k) of a dualzn number or of each 
-  !> element in an array of dualzn numbers.
-  !>
-  !> Use this function instead of direct component access A%f(k) when
-  !> working with arrays of `dualzn`, because some compilers may produce
-  !> unexpected results with that syntax.
-  !>
-  !> Usage:
-  !>   - Scalar: fr = f_part(x, k)            ! returns x%f(k)
-  !>   - Arrays: fr(:) = f_part(x(:), k)      ! applies elementwise
-  !>
-  !> Notes:
-  !>   - ELEMENTAL --> works with both scalars and arrays of `dualzn`.
-  !>   - If k > x%ord, the value is defined but semantically unused.
-  !>   - Caller must ensure 0 <= k <= max_order_dualzn.
+
   elemental function f_part(x,k) result(fr)
     type(dualzn), intent(in) :: x
     integer, intent(in) :: k
@@ -294,24 +232,7 @@ contains
 
     fr = x%f(k)
   end function f_part
-  !---------------------------------------------------------------------
 
-  !> Sets the k-th coefficient f(k) of a dual number or of each element 
-  !> in an array of dual numbers.
-  !>
-  !> Use this routine instead of direct component access A%f(k) when
-  !> working with arrays of `dualzn`, because some compilers may produce
-  !> unexpected results with that syntax.
-  !>
-  !> Usage:
-  !>   - Scalar: f_set_part(x, y, k)          ! sets x%f(k) = y
-  !>   - Arrays: f_set_part(X, y, k)          ! applies elementwise
-  !>
-  !> Notes:
-  !>   - ELEMENTAL --> works with both scalars and arrays of `dualzn`.
-  !>   - Writes f(k) regardless of x%ord. If k > x%ord, the coefficient
-  !>     is defined but semantically unused.
-  !>   - Caller must ensure 0 <= k <= max_order_dualzn.
   elemental subroutine f_set_part(x,y,k)
     type(dualzn), intent(inout) :: x
     complex(prec), intent(in) :: y
@@ -324,33 +245,7 @@ contains
 
     x%f(k) = y
   end subroutine f_set_part
-  !---------------------------------------------------------------------
 
-  !> Converts a value (integer, real, complex, or dualzn) `X` into
-  !> a dualzn number of specified order `n`.
-  !>
-  !> Behavior:
-  !>  - If `X` is already type(dualzn):
-  !>     Copies up to min(n, X%ord) coefficients from X into the
-  !>     result, zero-filling any remaining coefficients up to order n.
-  !>     The resulting order is exactly `n`, which may be greater or
-  !>     smaller than X%ord.
-  !>
-  !>  - If `X` is a scalar (complex, real, or integer; any supported 
-  !>     kind): Produces a dualzn of order `n` with `X` stored in 
-  !>     coefficient f(0) and all higher coefficients f(1:n) set to 
-  !>     zero.
-  !>
-  !> Notes:
-  !>  - Unlike the overloaded assignment `Y = X`, which produces a
-  !>     dualzn of order 0 for scalars and preserves X%ord for dualzn,
-  !>     `xto_dzn(X, n)` always constructs a dualzn whose order is
-  !>     exactly `n`, regardless of the input type or order.
-  !>
-  !> Example (coefficients shown as arrays):
-  !>   X = [0, 1, 2]         ! dualzn of order 2
-  !>   Y = xto_dzn(X, 1)     ! --> [0, 1]
-  !>   Y = xto_dzn(X, 4)     ! --> [0, 1, 2, 0, 0]
   elemental function xto_dzn(X, n) result(fr)
     class(*), intent(in) :: X
     integer,  intent(in) :: n
@@ -383,18 +278,7 @@ contains
        continue
     end select
   end function xto_dzn
-  !---------------------------------------------------------------------
 
-  !> Converts `X` (integer, real, or complex) to `complex(prec)`.
-  !>
-  !> - If `X` is `complex`, only the kind is changed to `prec`.
-  !> - If `X` is `integer` or `real`, the imaginary part is set to
-  !> `0.0_prec`.
-  !> - `elemental`: can be applied to scalars or arrays and operates
-  !>   element-wise.
-  !>
-  !> @param X   Input value (polymorphic).
-  !> @return    `fr` as `complex(prec)`.
   elemental function xto_complex(X) result(fr)
     class(*), intent(in) :: X
     complex(prec) :: fr
@@ -419,8 +303,7 @@ contains
     class default
        continue
     end select    
-  end function xto_complex  
-  !---------------------------------------------------------------------
+  end function xto_complex
   
   !> Tests whether the numerical value of X is exactly equal to an
   !! integer. The check works for real, complex, and dual numbers.
@@ -457,8 +340,7 @@ contains
        fr = .TRUE.       
     end select
   end function numIntQ
-  !---------------------------------------------------------------------
-
+  
   !dualzn - class  (B - X)
   elemental function restadX(B, X) result(fr)
     class(*),   intent(in) :: X  
@@ -472,8 +354,7 @@ contains
        fr = restad(B, xto_dzn(X, B%ord))
     end select
   end function restadX
-  !---------------------------------------------------------------------
-
+  
   !class - dual (X - B)
   elemental function restaXd(XX,BB) result(fr)
     class(*), intent(in) :: XX
@@ -487,8 +368,7 @@ contains
        fr = restad(xto_dzn(XX, BB%ord),BB)
     end select
   end function restaXd
-  !---------------------------------------------------------------------
-
+  
   !dualzn + class  (B + X)
   elemental function sumadX(B, X) result(fr)
     class(*),   intent(in) :: X  
@@ -502,8 +382,7 @@ contains
        fr = sumad(B, xto_dzn(X, B%ord))
     end select
   end function sumadX
-  !---------------------------------------------------------------------
-
+  
   !class + dual (X + B)
   elemental function sumaXd(XX,BB) result(fr)
     class(*), intent(in) :: XX
@@ -517,8 +396,7 @@ contains
        fr = sumad(xto_dzn(XX, BB%ord),BB)
     end select
   end function sumaXd
-  !---------------------------------------------------------------------
-
+  
   !dualzn*class  (B*X)
   elemental function timesdX(B, X) result(fr)
     class(*),   intent(in) :: X  
@@ -532,8 +410,7 @@ contains
        fr = timesd(B, xto_dzn(X, B%ord))
     end select
   end function timesdX
-  !---------------------------------------------------------------------
-
+  
   !class*dual (X*B)
   elemental function timesXd(XX,BB) result(fr)
     class(*), intent(in) :: XX
@@ -547,8 +424,7 @@ contains
        fr = timesd(xto_dzn(XX, BB%ord),BB)
     end select
   end function timesXd
-  !---------------------------------------------------------------------
-
+  
   !dualzn/class  (B/X)
   elemental function divdX(B, X) result(fr)
     class(*),   intent(in) :: X  
@@ -562,8 +438,7 @@ contains
        fr = divd(B, xto_dzn(X, B%ord))
     end select
   end function divdX
-  !---------------------------------------------------------------------
-
+  
   !class/dual (X/B)
   elemental function divXd(XX,BB) result(fr)
     class(*), intent(in) :: XX
@@ -577,8 +452,7 @@ contains
        fr = divd(xto_dzn(XX, BB%ord),BB)
     end select
   end function divXd
-  !---------------------------------------------------------------------
-
+  
   !dual**class  (B**X)
   elemental function powerdX(B, X) result(fr)
     class(*),   intent(in) :: X  
@@ -596,8 +470,7 @@ contains
        fr = powerd(B, xto_dzn(X, B%ord))
     end select
   end function powerdX
-  !---------------------------------------------------------------------
-
+  
   !class**dual (X**B)
   elemental function powerXd(XX,BB) result(fr)
     class(*), intent(in) :: XX
@@ -611,8 +484,7 @@ contains
        fr = powerd(xto_dzn(XX, BB%ord),BB)
     end select
   end function powerXd
-  !---------------------------------------------------------------------
-
+  
   !A**B
   elemental function powerd(A,B) result(fr)
     type(dualzn), intent(in) :: A, B
@@ -626,8 +498,7 @@ contains
        fr = exp(B*log(A))
     end if
   end function powerd
-  !---------------------------------------------------------------------
-
+  
   !A**n (n integer)
   elemental function power_dint32(A,n) result(fr)
     type(dualzn), intent(in) :: A
@@ -662,8 +533,7 @@ contains
        fr = inv(fr)
     end if
   end function power_dint32
-  !---------------------------------------------------------------------
-
+  
   !A**n (n integer)
   elemental function power_dint64(A,n) result(fr)
     type(dualzn), intent(in) :: A
@@ -699,9 +569,7 @@ contains
        fr = inv(fr)
     end if
   end function power_dint64
-  !---------------------------------------------------------------------
-
-  !---------------------------------------------------------------------
+  
   !> Overloaded assignment (=) for type(dualzn).
   !>
   !> Supported assignments:
@@ -774,7 +642,6 @@ contains
   ! end subroutine assign_DCRI_dzn
   !---------------------------------------------------------------------
   
-  !======
   !> Logical equality operator.
   !! In this definition, two `dualzn` numbers are considered equal only
   !! if they have the same order and all corresponding components are
@@ -799,8 +666,7 @@ contains
        end if
     end do
   end function eq_dzn
-  !---------------------------------------------------------------------
-
+  
   !Logical not equal operator
   elemental function noteq_dzn(lhs, rhs) result(f_res)
     type (dualzn), intent(in) :: lhs, rhs
@@ -808,21 +674,18 @@ contains
 
     f_res = .not.(lhs == rhs)
   end function noteq_dzn
-  !---------------------------------------------------------------------
-
-  !> +dualzn (unary)
+  
+  ! +dualzn (unary)
   elemental function masd(A) result(fr)
     type(dualzn), intent(in) :: A
     type(dualzn) :: fr
 
     fr = A
   end function masd
-  !---------------------------------------------------------------------
-
-
-  !> A+B
-  !! we take the order as the order of A.
-  !! Avoid mixing different orders for A nad B
+ 
+  ! A+B
+  ! we take the order as the order of A.
+  ! Avoid mixing different orders for A nad B
   elemental function sumad(A,B) result(fr)
     type(dualzn), intent(in) :: A,B
     type(dualzn) :: fr
@@ -834,9 +697,8 @@ contains
        fr%f(k) = A%f(k) + B%f(k)
     end do
   end function sumad
-  !---------------------------------------------------------------------
-
-  !> -dualzn (unary)
+  
+  ! -dualzn (unary)
   elemental function menosd(A) result(fr)
     type(dualzn), intent(in) :: A
     type(dualzn) :: fr
@@ -849,17 +711,16 @@ contains
     end do
   end function menosd
 
-  !> A-B
-  !! Avoid mixing different orders for A and B
+  ! A-B
+  ! Avoid mixing different orders for A and B
   elemental function restad(A,B) result(fr)
     type(dualzn), intent(in) :: A,B
     type(dualzn) :: fr
 
     fr = -B+A
   end function restad
-  !---------------------------------------------------------------------
-
-  !> A*B
+  
+  ! A*B
   !! It is assumed A nd B of the same order. Avoid mixing orders.
   elemental function timesd(A,B) result(fr)
     type(dualzn), intent(in) :: A, B
