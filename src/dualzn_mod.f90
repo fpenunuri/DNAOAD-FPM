@@ -485,12 +485,16 @@ contains
     end select
   end function powerXd
   
-  !A**B
+  !! A**B
+  !! Both operands must have the same order, otherwise execution stops
+  !! with an error.
   elemental function powerd(A,B) result(fr)
     type(dualzn), intent(in) :: A, B
     type(dualzn) :: fr
     integer(real64) :: iaux    
 
+    if(A%ord /= B%ord) error stop "(**): different orders for operands"
+    
     if(numIntQ(B)) then
        iaux = nint(real(B%f(0),kind=prec))
        fr = power_dint64(A,iaux)
@@ -682,22 +686,23 @@ contains
 
     fr = A
   end function masd
- 
-  ! A+B
-  ! we take the order as the order of A.
-  ! Avoid mixing different orders for A nad B
+
+  !! A+B
+  !! Both operands must have the same order, otherwise execution stops
+  !! with an error.
   elemental function sumad(A,B) result(fr)
     type(dualzn), intent(in) :: A,B
     type(dualzn) :: fr
-    integer :: k, orderA
+    integer :: k
 
-    orderA = A%ord
-    call initialize_dualzn(fr,orderA)
-    do k=0,orderA
+    if(A%ord /= B%ord) error stop "(+): different orders for operands"
+
+    call initialize_dualzn(fr,A%ord)
+    do k=0,A%ord
        fr%f(k) = A%f(k) + B%f(k)
     end do
   end function sumad
-  
+
   ! -dualzn (unary)
   elemental function menosd(A) result(fr)
     type(dualzn), intent(in) :: A
@@ -711,21 +716,26 @@ contains
     end do
   end function menosd
 
-  ! A-B
-  ! Avoid mixing different orders for A and B
+  !! A-B
+  !! Both operands must have the same order, otherwise execution stops
+  !! with an error.
   elemental function restad(A,B) result(fr)
     type(dualzn), intent(in) :: A,B
     type(dualzn) :: fr
 
+    if(A%ord /= B%ord) error stop "(-): different orders for operands"
     fr = -B+A
   end function restad
   
-  ! A*B
-  !! It is assumed A nd B of the same order. Avoid mixing orders.
+  !! A*B
+  !! Both operands must have the same order, otherwise execution stops
+  !! with an error.
   elemental function timesd(A,B) result(fr)
     type(dualzn), intent(in) :: A, B
     type(dualzn) :: fr
     integer :: k
+
+    if(A%ord /= B%ord) error stop "(*): different orders for operands"
 
     call initialize_dualzn(fr,A%ord)
     do k=0,A%ord
@@ -733,6 +743,7 @@ contains
     end do
   end function timesd
 
+  !! It is assumed A nd B of the same order. Avoid mixing orders.
   pure function timesdzn(A,B,k) result(fr)
     type(dualzn), intent(in) :: A, B
     integer, intent(in) :: k     
@@ -746,15 +757,18 @@ contains
   end function timesdzn
   !---------------------------------------------------------------------
 
-  !> A/B
+  !! A/B
+  !! Both operands must have the same order, otherwise execution stops
+  !! with an error.
   elemental function divd(A,B) result(fr)
     type(dualzn), intent(in) :: A, B
     type(dualzn) :: fr
 
+    if(A%ord /= B%ord) error stop "(/): different orders for operands"
     fr = A*inv(B)
   end function divd
 
-  !> inverse multiplicative function
+  !! inverse multiplicative function
   elemental function inv(g) result(fr)
     type(dualzn), intent(in) :: g
     type(dualzn) :: fr
@@ -1230,12 +1244,16 @@ contains
   end function absx
   !---------------------------------------------------------------------
 
-   ! atan2d function
+  !! atan2d function
+  !! Both operands must have the same order, otherwise execution stops
+  !! with an error.
   elemental function atan2d_(y,x) result(fr)
     type(dualzn), intent(in) :: y, x
     type(dualzn) :: fr
     complex(prec) :: x0, y0
 
+    if(y%ord /= x%ord) error stop "(atan2): different orders for operands"
+    
     fr = atan(y/x)
     x0 = x%f(0)
     y0 = y%f(0)
