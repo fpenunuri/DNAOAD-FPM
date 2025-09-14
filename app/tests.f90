@@ -28,11 +28,11 @@ program main
   end do
   write(*,"(A)") "----"
   
-  z = xto_dzn(x,y%ord) + y
+  !z = xto_dzn(x,y%ord) + y
+  z = x*y
   do k=0,z%ord
      write(*,*) z%f(k)
   end do
   write(*,"(A)") "----"
-  
-  
+    
 end program main
