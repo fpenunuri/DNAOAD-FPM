@@ -122,11 +122,10 @@ Additional functions:
 
 ## C. `module diff_mod`
 This module contains some directional derivatives and differential operators.
-I. Directional derivatives
 
 ### Interfaces
 
-1. **`fsdual`**: Abstract interface for a scalar dual function  
+I. **`fsdual`**: Abstract interface for a scalar dual function  
    \( f:\mathbb{D}^m \to \mathbb{D} \)  
    ```fortran
    abstract interface
@@ -138,7 +137,7 @@ I. Directional derivatives
    end interface
    ```
 
-2. **`fvecdual`**: Abstract interface for a vector dual function  
+II. **`fvecdual`**: Abstract interface for a vector dual function  
    \( f:\mathbb{D}^m \to \mathbb{D}^n \)  
    ```fortran
    abstract interface
@@ -152,44 +151,39 @@ I. Directional derivatives
 
 ### Functions
 
-3. **`dfv = d1fscalar(fsd,v,q)`**  
+1. **`dfv = d1fscalar(fsd,v,q)`**  
    - Returns: `complex(prec)`  
    - First-order directional derivative of a scalar function along vector `v`, evaluated at point `q`.  
    - `fsd`: procedure(fsdual). A scalar dualzn function \( f:\mathbb{D}^m \to \mathbb{D} \).  
    - `v`: `complex(prec), dimension(:)`. Direction vector.  
 
-4. **`d2fv = d2fscalar(fsd,v,q)`**  
+2. **`d2fv = d2fscalar(fsd,v,q)`**  
    - Returns: `complex(prec)`  
    - Second-order directional derivative along vector `v`, at point `q`.  
    - Equivalent to **v.H.v** (Hessian with vector `v`) but more efficient.  
 
-5. **`d2fv = d2fscalar(fsd,u,v,q)`**  
+3. **`d2fv = d2fscalar(fsd,u,v,q)`**  
    - Returns: `complex(prec)`  
    - Second-order directional derivative along vectors `u`, `v`, at point `q`.  
    - Equivalent to **u.H.v** (Hessian with vectors `u`, `v`) but more efficient.  
 
-6. **`dfvecv = d1fvector(fvecd,v,q,n)`**  
+4. **`dfvecv = d1fvector(fvecd,v,q,n)`**  
    - Returns: `complex(prec), dimension(n)`  
    - First-order directional derivative of a vector function along vector `v`, evaluated at `q`.  
    - Equivalent to **J.v** (Jacobian with vector `v`) but more efficient.  
 
-7. **`H = Hessian(fsd,q)`**  
+5. **`H = Hessian(fsd,q)`**  
    - Returns: `complex(prec), dimension(size(q),size(q))`  
    - Computes the Hessian matrix of a scalar function at point `q`.  
 
-8. **`J = Jacobian(fvecd,q,n)`**  
+6. **`J = Jacobian(fvecd,q,n)`**  
    - Returns: `complex(prec), dimension(n,size(q))`  
    - Computes the Jacobian matrix of a vector function at point `q`.  
 
-9. **`G = gradient(fsd,q)`**  
+7. **`G = gradient(fsd,q)`**  
    - Returns: `complex(prec), dimension(size(q))`  
    - Computes the gradient vector of a scalar function at point `q`.  
 
-
----
-	
-
-*(work in progress)*
 
 ---
 
