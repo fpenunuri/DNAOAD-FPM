@@ -10,15 +10,29 @@ program main
   y = xto_dzn(0.0_prec,3)
 
   x%f(0:x%ord) = [1,2,3]
-  y%f(0:y%ord) = [4,5,6]
+  y%f(0:y%ord) = [4,5,6,7]
 
-  z = y**x
+  do k=0,x%ord
+     write(*,*) x%f(k)
+  end do
+  write(*,"(A)") "----"
 
+  do k=0,y%ord
+     write(*,*) y%f(k)
+  end do
+  write(*,"(A)") "----"
+
+  z = x + xto_dzn(y,x%ord) 
   do k=0,z%ord
      write(*,*) z%f(k)
   end do
   write(*,"(A)") "----"
   
+  z = xto_dzn(x,y%ord) + y
+  do k=0,z%ord
+     write(*,*) z%f(k)
+  end do
+  write(*,"(A)") "----"
   
   
 end program main
