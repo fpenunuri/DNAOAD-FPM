@@ -7,15 +7,19 @@ program main
   integer :: k
   
   call initialize_dualzn(x,2)
-  y = xto_dzn(0.0_prec,3)
+  y = xto_dzn(0.0_prec,2)
 
   x%f(0:x%ord) = [1,2,3]
   y%f(0:y%ord) = [4,5,6,7]
 
+<<<<<<< Updated upstream
   do k=0,x%ord
      write(*,*) x%f(k)
   end do
   write(*,"(A)") "----"
+=======
+  z = y + x
+>>>>>>> Stashed changes
 
   do k=0,y%ord
      write(*,*) y%f(k)

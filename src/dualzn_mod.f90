@@ -156,7 +156,6 @@ module dualzn_mod
 
   interface atan
      module procedure atand_
-     ! Fortran 2008 standard for 2 argument atan:
      module procedure atan2d_
   end interface atan
 
