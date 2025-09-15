@@ -12,6 +12,7 @@ This repository provides a [Fortran Package Manager (fpm)](https://fpm.fortran-l
 
 - `src/` — Fortran source modules  
 - `app/` — Executable programs  
+- `docs/` — Documentation of module functions  
 - `fpm.toml` — Project configuration file  
 
 ---
