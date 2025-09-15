@@ -186,8 +186,11 @@ II. **`fvecdual`**: Abstract interface for a vector dual function
 
 
 ---
-
 ## D. `module test_functions_mod`
-*(work in progress)*
+This module provides examples of two types of functions:  
+- a scalar function defined on a vector variable, and  
+- a vector function defined on vector variables.  
+
+These are used in example **ex3**.
 
 ---
