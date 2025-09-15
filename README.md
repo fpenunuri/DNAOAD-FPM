@@ -17,7 +17,7 @@ This repository provides a [Fortran Package Manager (fpm)](https://fpm.fortran-l
 
 ---
 
-## 🚀 Requirements
+## 📦 Requirements
 
 - A Fortran compiler (e.g., `gfortran`, `ifx`)  
 - A recent version of `fpm`  
