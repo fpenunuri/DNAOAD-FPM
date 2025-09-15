@@ -1,4 +1,4 @@
-# DNAOAD Package
+# DNAOAD-FPM Package
 *A Fortran implementation of dual numbers for arbitrary-order automatic differentiation*
 
 ---
@@ -34,7 +34,7 @@ end type dualzn
 ```
 ==, /=, +, -, *, /, **
 ```
-Intrinsic assignment (`=`) is **not overloaded**. Fortran already supports assignment between identical types . For cross-type conversions, use explicit constructors or functions.
+Intrinsic assignment (`=`) is **not overloaded**. Fortran already supports assignment between identical types . For cross-type conversions, use the xto_dzn function.
 
 Example:
 ```fortran
