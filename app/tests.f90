@@ -12,15 +12,6 @@ program main
   x%f(0:x%ord) = [1,2,3]
   y%f(0:y%ord) = [4,5,6,7]
 
-<<<<<<< Updated upstream
-  do k=0,x%ord
-     write(*,*) x%f(k)
-  end do
-  write(*,"(A)") "----"
-=======
-  z = y + x
->>>>>>> Stashed changes
-
   do k=0,y%ord
      write(*,*) y%f(k)
   end do
