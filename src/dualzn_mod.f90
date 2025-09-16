@@ -1,4 +1,4 @@
-!Dual numbers to order n of complex components
+!Dual numbers to arbitrary order of complex components
 !This can be used to compute first, second,... nth order derivatives
 !F. Pe~nu~nuri
 !UADY, M'erida Yucat'an M'exico
@@ -588,7 +588,7 @@ contains
   !>
   !> Notes:
   !>   - This assignment always fully initializes A%ord and A%f.
-  !>   - To create a dual number with a specific (nonzero) order from a
+  !>   - To create a dual number with a specific order from a
   !>     scalar, use the dedicated constructor, e.g.:
   !>         A = xto_dzn(5, n)
   !>     which yields a dualzn of order n with A%f(0) = 5 and

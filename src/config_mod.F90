@@ -23,4 +23,3 @@ module config_mod
 
   integer, parameter, public :: max_order_dualzn = MAX_ORDER_DUALZN
 end module config_mod
-
