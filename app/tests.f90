@@ -5,7 +5,8 @@ program main
 
   type(dualzn) :: x, y ,z
   integer :: k
-  
+
+  write(*,"(A,1x,I0)") "max_order_dualzn:", max_order_dualzn
   call initialize_dualzn(x,2)
   y = xto_dzn(0.0_prec,2)
 
