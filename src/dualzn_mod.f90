@@ -831,7 +831,6 @@ contains
     real(prec), parameter :: Pi = 4.0_prec*atan(1.0_prec)
     type(dualzn) :: gaux
     
-
     gaux = g
     gaux%f(0) = g%f(0) + Pi/2.0_prec
     fr = sin(gaux)
