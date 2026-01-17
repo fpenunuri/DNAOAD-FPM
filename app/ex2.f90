@@ -8,10 +8,12 @@ program main
   integer :: k
   real :: t1,t2
   integer, parameter :: or=10
-  
-  write(*,"(A,1x,I0)") "max-order:", max_order_dualzn
-  write(*,"(A)") "----"
 
+
+  if (max_order_dualzn < or) then
+     write(*,"(A,I0)") "use:  fpm --flag -DMAX_ORDER_DUALZN=",or
+  end if
+  
   r = xto_dzn(0,or) !<--- initializing r to 0 and order 'or'
                      !also 'call initialize_dualzn(r,or)' can be used
 
@@ -26,7 +28,8 @@ program main
   
   !Computing the derivatives, from the 0th derivative up to the
   !or-th derivative.
-   write(*,"(A)") "derivatives"
+  write(*,"(A)") NEW_LINE("A")
+  write(*,"(A)") "derivatives"
   do k=0, or
      write(*,"(i0,a,f0.1,a,e17.10)") k,"-th derivative at x = ", &
           real(r%f(0)),":",real(fval%f(k))
