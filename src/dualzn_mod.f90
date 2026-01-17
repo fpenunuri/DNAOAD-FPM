@@ -17,7 +17,7 @@ module dualzn_mod
   end type dualzn
 
   public :: initialize_dualzn, f_part, f_set_part
-  public :: xto_dzn, xto_complex   
+  public :: xto_dzn, xto_complex
   !public :: Dnd  !use this function to "dualize" other functions
 
   public :: inv, sin, cos, tan, exp, log, sqrt, asin, acos, atan, asinh
@@ -281,7 +281,7 @@ contains
             ieee_value(0.0_prec, ieee_quiet_nan), kind=prec )
     end select
   end function xto_dzn
-  
+
   elemental function xto_complex(X) result(fr)
     use, intrinsic :: ieee_arithmetic, only: &
          ieee_value, ieee_quiet_nan
