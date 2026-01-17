@@ -246,6 +246,9 @@ contains
   end subroutine f_set_part
 
   elemental function xto_dzn(X, n) result(fr)
+    use, intrinsic :: ieee_arithmetic, only: &
+         ieee_value, ieee_quiet_nan
+    
     class(*), intent(in) :: X
     integer,  intent(in) :: n
     type(dualzn) :: fr
@@ -264,25 +267,29 @@ contains
     type is (complex(kind=real32))
        fr%f(0) = cmplx(X, kind=prec)
     type is (real(kind=real128))
-       fr%f(0) = cmplx(X, 0.0_prec, kind=prec)
+       fr%f(0) = cmplx(real(X, kind=prec), 0.0_prec, kind=prec)
     type is (real(kind=real64))
-       fr%f(0) = cmplx(X, 0.0_prec, kind=prec)
+       fr%f(0) = cmplx(real(X, kind=prec), 0.0_prec, kind=prec)
     type is (real(kind=real32))
-       fr%f(0) = cmplx(X, 0.0_prec, kind=prec)
+       fr%f(0) = cmplx(real(X, kind=prec), 0.0_prec, kind=prec)
     type is (integer(kind=int64))
-       fr%f(0) = cmplx(X, 0.0_prec, kind=prec)
+       fr%f(0) = cmplx(real(X, kind=prec), 0.0_prec, kind=prec)
     type is (integer(kind=int32))
-       fr%f(0) = cmplx(X, 0.0_prec, kind=prec)
+       fr%f(0) = cmplx(real(X, kind=prec), 0.0_prec, kind=prec)
     class default
-       continue
+       fr%f(0:n) = cmplx( ieee_value(0.0_prec, ieee_quiet_nan), &
+            ieee_value(0.0_prec, ieee_quiet_nan), kind=prec )
     end select
   end function xto_dzn
-
+  
   elemental function xto_complex(X) result(fr)
+    use, intrinsic :: ieee_arithmetic, only: &
+         ieee_value, ieee_quiet_nan
+
     class(*), intent(in) :: X
     complex(prec) :: fr
 
-    select type(X)
+    select type (X)
     type is (complex(kind=real128))
        fr = cmplx(X, kind=prec)
     type is (complex(kind=real64))
@@ -290,18 +297,19 @@ contains
     type is (complex(kind=real32))
        fr = cmplx(X, kind=prec)
     type is (real(kind=real128))
-       fr = cmplx(X, 0.0_prec, kind=prec)
+       fr = cmplx(real(X, kind=prec), 0.0_prec, kind=prec)
     type is (real(kind=real64))
-       fr = cmplx(X, 0.0_prec, kind=prec)
+       fr = cmplx(real(X, kind=prec), 0.0_prec, kind=prec)
     type is (real(kind=real32))
-       fr = cmplx(X, 0.0_prec, kind=prec)
+       fr = cmplx(real(X, kind=prec), 0.0_prec, kind=prec)
     type is (integer(kind=int64))
-       fr = cmplx(X, 0.0_prec, kind=prec)
+       fr = cmplx(real(X, kind=prec), 0.0_prec, kind=prec)
     type is (integer(kind=int32))
-       fr = cmplx(X, 0.0_prec, kind=prec)
+       fr = cmplx(real(X, kind=prec), 0.0_prec, kind=prec)
     class default
-       continue
-    end select    
+       fr = cmplx( ieee_value(0.0_prec, ieee_quiet_nan), &
+            ieee_value(0.0_prec, ieee_quiet_nan), kind=prec )
+    end select
   end function xto_complex
   
   !> Tests whether the numerical value of X is exactly equal to an
@@ -336,7 +344,9 @@ contains
     type is (integer(kind=int64))
        fr = .TRUE.
     type is (integer(kind=int32))
-       fr = .TRUE.       
+       fr = .TRUE.
+    class default
+       fr = .FALSE.
     end select
   end function numIntQ
   
