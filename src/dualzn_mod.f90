@@ -105,8 +105,23 @@ module dualzn_mod
      module procedure MtimesR32d
      module procedure MtimesI64d
      module procedure MtimesI32d
+     module procedure matmul_Av !rank2 . rank1 
+     module procedure matmul_vA !rank1 . rank2 
   end interface matmul
-
+  
+  !rank2 . rank2
+  interface matmul_Xmat
+     module procedure MtimesdX
+     module procedure MtimesC128d
+     module procedure MtimesC64d
+     module procedure MtimesC32d
+     module procedure MtimesR128d
+     module procedure MtimesR64d
+     module procedure MtimesR32d
+     module procedure MtimesI64d
+     module procedure MtimesI32d
+  end interface matmul_Xmat
+  
   !some matrix and vector operations
   interface sum
      module procedure sumR2dzn   !sum(dualzn_rank2,dir)
@@ -1299,6 +1314,38 @@ contains
     f_res = t1 - t2
   end function atan2_z
   !---------------------------------------------------------------------
+  
+  ! A.x
+  function matmul_Av(A,x) result(fr)
+    type(dualzn), intent(in), dimension(:,:) :: A
+    class(*), intent(in), dimension(:) :: x
+    type(dualzn), dimension(size(A,1)) :: fr
+
+    type(dualzn),  dimension(size(A,2)) :: xaux
+    integer :: m, n
+
+    m = size(A,1)
+    n = size(A,2)
+
+    xaux = xto_dzn(x,A(1,1)%ord)
+    fr = reshape(matmul_Xmat(A, reshape(xaux,[n,1])),[m])
+  end function matmul_Av
+
+  ! v.A 
+  function matmul_vA(v, A) result(fr)
+    type(dualzn), intent(in), dimension(:,:) :: A
+    class(*), intent(in), dimension(:) :: v
+    type(dualzn), dimension(size(A,2)) :: fr
+
+    type(dualzn),  dimension(size(A,1)) :: xaux
+    integer :: m, n
+
+    m = size(A,1)
+    n = size(A,2)
+
+    xaux = xto_dzn(v, A(1,1)%ord)
+    fr = reshape(matmul_Xmat( reshape(xaux, [1, m]), A ), [n])
+  end function matmul_vA
 
   ! mat-dualzn*class
   function MtimesdX(A,X) result(fr)
